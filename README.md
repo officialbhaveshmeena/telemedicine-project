@@ -1,297 +1,89 @@
-# Telemedicine App - Node.js Backend
+# Telemedicine Assignment
 
-A real-time telemedicine application backend built with Node.js, Express, WebSockets, and WebRTC signaling.
-
-## Tech Stack
-
-- **Backend Framework:** Express.js (Node.js)
-- **WebSocket Library:** ws
-- **Authentication:** JWT (jsonwebtoken)
-- **Real-time Communication:** WebSockets for chat and WebRTC signaling
+A peer-to-peer telemedicine application featuring WebRTC audio calling capabilities.
 
 ## Features
 
-✅ User registration and authentication with JWT
-✅ Two user roles: PATIENT and DOCTOR
-✅ Real-time chat messaging via WebSockets
-✅ WebRTC signaling for peer-to-peer audio calls
-✅ Doctor availability status management (ONLINE/BUSY)
-✅ In-memory data storage (no database required)
-✅ CORS enabled for cross-origin requests
+- **WebRTC Audio Calls**: Real-time peer-to-peer audio communication
+- **Room-based Calling**: Create or join calls using unique room IDs
+- **Encrypted Connections**: Secure peer-to-peer connections
+- **Mute/Unmute**: Control audio during calls
+- **Cross-platform**: Works in modern web browsers
 
-## Project Structure
-```
-telemedicine-backend/
-├── server.js           # Main server file
-├── package.json        # Dependencies and scripts
-└── README.md          # Documentation
-```
+## Architecture
 
-## Installation
+- **Frontend**: React application with Tailwind CSS
+- **Backend**: Node.js Express server with WebSocket support
+- **Signaling**: Uses localStorage for simple signaling (not production-ready)
 
-1. **Clone or create the project directory:**
+## Prerequisites
+
+- Docker and Docker Compose
+- Node.js 18+ (for local development)
+- Modern web browser with WebRTC support
+
+## Running the Application
+
+### Option 1: Docker Compose (Recommended)
+
 ```bash
-mkdir telemedicine-backend
-cd telemedicine-backend
+docker-compose up
 ```
 
-2. **Initialize and install dependencies:**
+This will build and start both frontend and backend services.
+
+### Option 2: Manual Docker Commands
+
 ```bash
-npm init -y
-npm install express ws jsonwebtoken cors
-npm install --save-dev nodemon
+# Build images
+docker build -t telemedicine-backend ./backend
+docker build -t telemedicine-frontend ./frontend
+
+# Run containers
+docker run -d -p 8000:8000 telemedicine-backend
+docker run -d -p 80:80 telemedicine-frontend
 ```
 
-3. **Copy the server.js file** into your project directory
+### Option 3: Local Development
 
-## Running the Server
+For development with hot reloading:
 
-### Development mode (with auto-restart):
+**Backend:**
 ```bash
-npm run dev
-```
-
-### Production mode:
-```bash
+cd backend
+npm install
 npm start
 ```
 
-The server will start on **http://localhost:8000**
-
-## API Endpoints
-
-### Authentication
-
-#### POST `/register`
-Register a new user (PATIENT or DOCTOR)
-
-**Request Body:**
-```json
-{
-  "username": "bhavesh",
-  "password": "password123",
-  "role": "PATIENT"
-}
-```
-
-**Response:**
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "role": "PATIENT"
-}
-```
-
-#### POST `/login`
-Login existing user
-
-**Request Body:**
-```json
-{
-  "username": "bhavesh",
-  "password": "password123"
-}
-```
-
-**Response:**
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "role": "PATIENT"
-}
-```
-
-### Doctor Status (Protected)
-
-#### POST `/doctors/status`
-Update doctor availability status
-
-**Headers:**
-```
-Authorization: Bearer <jwt_token>
-```
-
-**Request Body:**
-```json
-{
-  "status": "ONLINE"
-}
-```
-
-**Response:**
-```json
-{
-  "status": "updated"
-}
-```
-
-### WebSocket Connection
-
-#### WS `/ws?token=<jwt_token>`
-Establish WebSocket connection for real-time features
-
-**Connection URL:**
-```
-ws://localhost:8000/ws?token=<your_jwt_token>
-```
-
-## WebSocket Message Types
-
-### Client → Server
-
-#### Chat Message
-```json
-{
-  "type": "chat",
-  "to": "recipient_username",
-  "message": "Hello!"
-}
-```
-
-#### Call Offer (WebRTC)
-```json
-{
-  "type": "call_offer",
-  "to": "doctor_username",
-  "offer": { /* RTCSessionDescription */ }
-}
-```
-
-#### Call Answer (WebRTC)
-```json
-{
-  "type": "call_answer",
-  "to": "patient_username",
-  "answer": { /* RTCSessionDescription */ }
-}
-```
-
-#### ICE Candidate (WebRTC)
-```json
-{
-  "type": "ice_candidate",
-  "to": "other_username",
-  "candidate": { /* RTCIceCandidate */ }
-}
-```
-
-#### Call Ended
-```json
-{
-  "type": "call_ended",
-  "to": "other_username"
-}
-```
-
-### Server → Client
-
-#### User List Update
-```json
-{
-  "type": "user_list",
-  "users": [
-    {
-      "username": "doctor1",
-      "role": "DOCTOR",
-      "status": "ONLINE"
-    }
-  ]
-}
-```
-
-#### Received Chat Message
-```json
-{
-  "type": "chat",
-  "from": "sender_username",
-  "to": "recipient_username",
-  "message": "Hello!"
-}
-```
-
-## Design Decisions
-
-### 1. **In-Memory Storage**
-- Uses JavaScript `Map` objects for fast lookups
-- Perfect for demo/prototype without database overhead
-- Easy to replace with real database later
-
-### 2. **JWT Authentication**
-- Stateless authentication
-- Tokens valid for 24 hours
-- Used for both REST API and WebSocket connections
-
-### 3. **Single WebSocket Endpoint**
-- Handles all real-time features (chat, WebRTC signaling)
-- Message routing based on `type` field
-- Efficient and maintainable
-
-### 4. **WebRTC Signaling**
-- Server acts as signaling server only
-- Actual audio/video flows peer-to-peer
-- Supports offer, answer, and ICE candidate exchange
-
-### 5. **Automatic Status Management**
-- Doctor status automatically broadcast on updates
-- Connections cleaned up on disconnect
-- Real-time user list updates
-
-## Security Considerations
-
-⚠️ **For Production, you should:**
-
-1. **Hash passwords** - Use bcrypt instead of plain text
-2. **Environment variables** - Store SECRET_KEY in .env file
-3. **HTTPS/WSS** - Use secure connections
-4. **Rate limiting** - Prevent abuse
-5. **Input validation** - Validate all user inputs
-6. **Database** - Replace in-memory storage with proper DB
-
-## Testing the Server
-
-### 1. Test Registration
+**Frontend:**
 ```bash
-curl -X POST http://localhost:8000/register \
-  -H "Content-Type: application/json" \
-  -d '{"username":"doctor1","password":"pass123","role":"DOCTOR"}'
+cd frontend
+npm install
+npm start
 ```
 
-### 2. Test Login
-```bash
-curl -X POST http://localhost:8000/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"doctor1","password":"pass123"}'
-```
+## Usage
 
-### 3. Test Status Update
-```bash
-curl -X POST http://localhost:8000/doctors/status \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -d '{"status":"BUSY"}'
-```
+1. **Start a Call**: Click "Start New Call" to generate a room ID
+2. **Share Room ID**: Copy and share the room ID with the other participant
+3. **Join a Call**: Enter the room ID and click "Join Call"
+4. **Audio Controls**: Use mute/unmute during the call
+5. **End Call**: Click "End" to terminate the call
 
-### 4. Test WebSocket
-Use a WebSocket client or the React frontend to test real-time features.
+## Technologies Used
 
-## Frontend Integration
+- **Frontend**: React, Tailwind CSS, Lucide React icons
+- **Backend**: Node.js, Express, WebSocket, JWT
+- **WebRTC**: Peer-to-peer audio communication
+- **Docker**: Containerization
 
-The React frontend (from the artifact) is already configured to connect to this backend. Make sure:
+## Notes
 
-1. Backend is running on `http://localhost:8000`
-2. WebSocket URL is `ws://localhost:8000/ws`
-3. CORS is enabled (already configured)
-
-## Troubleshooting
-
-### Port already in use
-```bash
-# Change PORT in server.js or kill the process
-lsof -ti:8000 | xargs kill -9
-```
-
-
+- This is a demonstration application using localStorage for signaling
+- For production use, implement proper signaling server (e.g., Socket.io)
+- Ensure microphone permissions are granted in the browser
+- The application works best with two browser tabs/windows for testing
 
 ## License
 
-MIT
+ISC
