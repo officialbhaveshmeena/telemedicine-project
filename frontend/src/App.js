@@ -1,8 +1,27 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Phone, PhoneOff, Send, Users, Radio, LogOut, User } from 'lucide-react';
 
-const API_BASE = 'http://localhost:8000';
-const WS_URL = 'ws://localhost:8000/ws';
+// Use environment variable or derive from window location
+const getAPIBase = () => {
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+  const host = window.location.hostname;
+  const protocol = window.location.protocol;
+  return `${protocol}//${host}:8000`;
+};
+
+const getWSURL = () => {
+  if (process.env.REACT_APP_WS_URL) {
+    return process.env.REACT_APP_WS_URL;
+  }
+  const host = window.location.hostname;
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${protocol}//${host}:8000/ws`;
+};
+
+const API_BASE = getAPIBase();
+const WS_URL = getWSURL();
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
