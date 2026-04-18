@@ -2,14 +2,14 @@ version: '3.8'
 
 services:
   backend:
-    build: ./backend
+    image: venom4107/telemedicine-backend:latest
     ports:
       - "8000:8000"
     environment:
       - NODE_ENV=production
 
   frontend:
-    build: ./frontend
+    image: venom4107/telemedicine-frontend:latest
     ports:
       - "80:80"
     depends_on:
